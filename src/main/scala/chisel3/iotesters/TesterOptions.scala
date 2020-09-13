@@ -35,7 +35,8 @@ case class TesterOptions(
   moreVsimDoCmds:       Seq[String] = Seq.empty,
   vsimCommandEdits:     String = "",
   generateVcdOutput:    String = "",
-  generateFsdbOutput:    String = ""
+  generateFsdbOutput:   String = "",
+  generateCoverage:     String = "",
 ) extends ComposableOptions
 
 object TesterOptions {
@@ -185,6 +186,18 @@ trait HasTesterOptions {
     }
     .foreach { x => testerOptions = testerOptions.copy(generateFsdbOutput = x) }
     .text(s"""set this flag to "on" or "off", otherwise it defaults to off""")
+
+  parser.opt[String]("generate-coverage")
+    .abbr("tgc")
+    .validate { x =>
+      if(Seq("off", "line", "toggle").contains(x.toLowerCase)) {
+        parser.success
+      } else {
+        parser.failure("generageCoverage must be set to line, toggle, or off")
+      }
+    }
+    .foreach { x => testerOptions = testerOptions.copy(generateCoverage = x) }
+    .text(s"""set this flat to "line", "toggle", or "off" for VCS or Verilator, otherwise it defaults to off""")
 }
 
 class TesterOptionsManager

@@ -227,6 +227,8 @@ private[iotesters] object setupVerilatorBackend {
         val dut = getTopModule(circuit).asInstanceOf[T]
 
         val suppressVerilatorVCD = optionsManager.testerOptions.generateVcdOutput == "off"
+        val lineCoverage = optionsManager.testerOptions.generateCoverage == "line"
+        val toggleCoverage = optionsManager.testerOptions.generateCoverage == "toggle"
 
         // This makes sure annotations for command line options get created
         val externalAnnotations = firrtl.Driver.getAnnotations(optionsManager)
@@ -264,7 +266,10 @@ private[iotesters] object setupVerilatorBackend {
         cppHarnessWriter.append(emittedStuff)
         cppHarnessWriter.close()
 
-        val verilatorFlags = optionsManager.testerOptions.moreVcsFlags ++ { if (suppressVerilatorVCD) Seq() else Seq("--trace") }
+        val verilatorFlags = optionsManager.testerOptions.moreVcsFlags ++
+          { if (suppressVerilatorVCD) Seq() else Seq("--trace") } ++
+          { if (lineCoverage) Seq("--coverage-line") else Seq() } ++
+          { if (toggleCoverage) Seq("--coverage-toggle") else Seq() }
         assert(
           verilogToVerilator(
             circuit.name,

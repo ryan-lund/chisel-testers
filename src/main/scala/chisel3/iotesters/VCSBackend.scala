@@ -179,9 +179,14 @@ private[iotesters] object setupVCSBackend {
         }")
         copyVpiFiles(dir.toString)
         genVCSVerilogHarness(dut, new FileWriter(vcsHarnessFile), vpdFile.toString, generateFsdb = optionsManager.testerOptions.generateFsdbOutput == "on")
+
+        val moreVcsFlagsWithCoverage = optionsManager.testerOptions.moreVcsFlags ++
+          { if (optionsManager.testerOptions.generateCoverage == "line") Seq("-cm line") else Seq() } ++
+          { if (optionsManager.testerOptions.generateCoverage == "toggle") Seq("-cm tgl") else Seq() }
+
         assert(
           verilogToVCS(circuit.name, dir, new File(vcsHarnessFileName),
-            moreVcsFlags = optionsManager.testerOptions.moreVcsFlags,
+            moreVcsFlags = moreVcsFlagsWithCoverage,
             moreVcsCFlags = optionsManager.testerOptions.moreVcsCFlags,
             editCommands = optionsManager.testerOptions.vcsCommandEdits
           ).! == 0)
